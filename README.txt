@@ -1,4 +1,4 @@
-Last updated 3/26/2014 ~10:45 PM PST
+Last updated 3/26/2014 ~11:15 PM PST
 GUI uses Aditya Chopra's 2048 implementation as a base and has a few modifications. The AI is my own. This version will occasionally be updated to reflect Aditya's updates, but this won't happen all the time because of said modifications.
 
 To run: compile everything and run GameGUI. Warning: this program may create a LOT of output files. Files of the form AIReplay#.txt are created once every time the AI is started (after finishing all trials it's set to run). Files of the form IndivReplay.txt are created every time the AI plays a round.
