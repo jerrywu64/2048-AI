@@ -13,14 +13,18 @@ import java.util.Scanner;
 import javax.swing.*; 
 
 public class GameGUI extends javax.swing.JFrame {
+	//Settings
+    public static int win_target = 2048;
+    public static int sleep_time = 10;
+
+	//Data (don't touch)
     private static int[][] board = new int[4][4];
     private static int currentScore = 0;
     private int highScore = updateHigh();
     private static boolean ai = false;
-    public static int win_target = 2048;
-    public static int sleep_time = 10;
 	public static PrintWriter out = null;
 	public static boolean airunning = false;
+	
     public GameGUI() {
         initComponents();
         updateText();
@@ -168,7 +172,7 @@ public class GameGUI extends javax.swing.JFrame {
         );
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        setTitle("2048 in Java by Aditya Chopra");
+        setTitle(win_target + " in Java by Aditya Chopra");
         setBackground(new java.awt.Color(255, 255, 255));
         setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
         setMaximumSize(null);
@@ -683,7 +687,7 @@ public class GameGUI extends javax.swing.JFrame {
 
         jLabel21.setFont(new java.awt.Font("Arial", 1, 60)); // NOI18N
         jLabel21.setForeground(new java.awt.Color(119, 110, 101));
-        jLabel21.setText("2048");
+        jLabel21.setText("" + win_target);
 
         jLabel22.setFont(new java.awt.Font("Arial", 0, 18)); // NOI18N
         jLabel22.setForeground(new java.awt.Color(119, 110, 101));
@@ -691,7 +695,7 @@ public class GameGUI extends javax.swing.JFrame {
 
         jLabel23.setFont(new java.awt.Font("Arial", 1, 18)); // NOI18N
         jLabel23.setForeground(new java.awt.Color(119, 110, 101));
-        jLabel23.setText("2048 tile!");
+        jLabel23.setText(win_target + " tile!");
 
         jCheckBox1.setFont(new java.awt.Font("Arial", 0, 11)); // NOI18N
         jCheckBox1.setText("AI?");
@@ -1139,12 +1143,16 @@ public class GameGUI extends javax.swing.JFrame {
     }
     private void ai() {
         if (ai && !airunning) {
+			//System.out.println("Hello!");
 			airunning = true;
             new SwingWorker<Integer, Integer>() {
                 protected Integer doInBackground() {
+					//System.out.println("Hello!");
                     final AI ai = new AI();
                     jTextField1.setText(ai.name);
                     if (ai.autoRestart) {
+						
+						//System.out.println("Hello!");
                         int totalScore = 0;
                         int totalWins = 0;
                         int totalLosses = 0;
@@ -1152,9 +1160,9 @@ public class GameGUI extends javax.swing.JFrame {
                         int trialLowScore = Integer.MAX_VALUE;
                         int highTile = 0;
                         int trials = ai.trials;
-						String filename = "default";
+						String filename = "no output";
                         while (ai.autoRestart) {
-							if (out == null) {
+							if (AI.recording && out == null) {
 								try {
 									int ind = 1;
 									File f = null;
@@ -1174,25 +1182,37 @@ public class GameGUI extends javax.swing.JFrame {
 								}
 							}
 							for (int i = 0; i < 4; i++) {
-								out.println(Arrays.toString(board[i]));
+								if (out != null) out.println(Arrays.toString(board[i]));
 							}
-                            int id = ai.ai_move(board);
+							//System.out.println("Hello!3");
+                            int id = 0;
+							try {
+								id = ai.ai_move(board);
+							} catch (Exception e) {
+								e.printStackTrace();
+								new Scanner(System.in).nextLine();
+							}
+							
+							//System.out.println("Hello!4");
                             updateBoard(id, true);
 							if (AI.out != null) AI.out.println();
 							if (AI.out != null) AI.out.println("Moved: " + AI.translate(id));
-							out.println();
-							out.println("Moved: " + AI.translate(id));
+							if (out != null) out.println();
+							if (out != null) out.println("Moved: " + AI.translate(id));
                             publish(0);
+							//System.out.println("Hello!2");
                             try {
                                 Thread.sleep(sleep_time);
                             } catch(InterruptedException ex) {
+								System.out.println("Thread interrupted!");
                                 Thread.currentThread().interrupt();
                             }
+							//System.out.println("Hello!1");
                             //no high score stuff
                             if (checkWin()) {
 								System.out.println("Victory!" + " (" + filename + ")");
 								if (AI.out != null) AI.out.println("Victory!");
-								out.println("Victory!");
+								if (out != null) out.println("Victory!");
                                 totalWins++;
                                 totalScore += currentScore;
                                 if (currentScore > trialHighScore) trialHighScore = currentScore;
@@ -1204,13 +1224,15 @@ public class GameGUI extends javax.swing.JFrame {
                                 ai.trials--;
 								System.out.println("Trials remaining: " + ai.trials);
 								if (AI.out != null) AI.out.println("===NEW GAME===");
-								out.close();
-								out = null;
+								if (out != null) out.close();
+								if (out != null) out = null;
                             }
+							
+							//System.out.println("Hello!1");
                             if (checkLoss()) {
 								System.out.println("Loss: " + AI.max(board) + " (" + filename + ")");
 								if (AI.out != null) AI.out.println("Loss: " + AI.max(board));
-								out.println("Loss: " + AI.max(board));
+								if (out != null) out.println("Loss: " + AI.max(board));
                                 totalLosses++;
                                 totalScore += currentScore;
                                 if (currentScore > trialHighScore) trialHighScore = currentScore;
@@ -1222,9 +1244,11 @@ public class GameGUI extends javax.swing.JFrame {
                                 ai.trials--;
 								System.out.println("Trials remaining: " + ai.trials);
 								if (AI.out != null) AI.out.println("===NEW GAME===");
-								out.close();
-								out = null;
+								if (out != null) out.close();
+								if (out != null) out = null;
                             }
+							
+							//System.out.println("Hello!");
                             if (ai.trials == 0) ai.autoRestart = false;
                         }
                         double averageScore = totalScore / trials;
@@ -1248,6 +1272,7 @@ public class GameGUI extends javax.swing.JFrame {
                         try {
                             Thread.sleep(sleep_time);
                         } catch(InterruptedException ex) {
+							System.out.println("Thread interrupted!");
                             Thread.currentThread().interrupt();
                         }
                     }
@@ -1276,6 +1301,7 @@ public class GameGUI extends javax.swing.JFrame {
 					}
 					if (AI.fml != null) AI.fml.close();
 					airunning = false;
+					//System.out.println(AI.debnum);
 				}
             }.execute();
         }

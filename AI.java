@@ -2,25 +2,35 @@ import java.awt.event.*;
 import java.util.*;
 import java.io.*;
 public class AI {
-	public static final String VERSION = "1.2.1";
+	//Meta-Settings
+	public static final String VERSION = "1.2.2";
 	public static String name = "WerryJu";
-	public static int trials = 100;
+	public static int trials = 10;
 	public static boolean autoRestart = true;
-	private static LinkedList<Integer> queue = new LinkedList<Integer>();
+	public static boolean recording = true;
+	private static boolean thisAIIsCheating = false;
+	
+	//Performance/Algorithm Settings
 	private static boolean dumbai = false;
-	private static Scanner sc = new Scanner(System.in);
-	private static int turn = 0;
+	private static int iter_max = 30000;
+	private static int worst_weight = 4; // worst is weighted weight:1 vs avg
+	
+	//Debug Settings
 	private static boolean debug = false;
 	private static boolean debug2 = false;
-	private static boolean recording = true;
-	private static boolean thisAIIsCheating = false;
+	
+	//Data Storage (don't touch)
+	private static LinkedList<Integer> queue = new LinkedList<Integer>();
+	private static Scanner sc = new Scanner(System.in);
+	private static int turn = 0;
 	public static PrintWriter out = null;
 	public static PrintWriter fml = null;
 	private static int max_depth = 0;
-	private static int iter_max = 30000;
-	private static int worst_weight = 4; // worst is weighted weight:1 vs avg
-	public static String filename = "";
+	public static String filename = "no output";
+	public static long debnum = 0; // debug
+	
 	public static int ai_move (int[][] board) {
+		try {
 		//System.out.println(2 + Math.random());
 		if (recording) {
 			if (out == null) {
@@ -44,12 +54,15 @@ public class AI {
 			}
 			fprint(board);
 		}
-		if (thisAIIsCheating) board[0][0] = 2048;
+		//if (fml == null) fml = new PrintWriter (new File("fmldebug.txt"));
+		if (thisAIIsCheating && max(board) < 8) {
+			board[0][0] = 2048;
+		}
 		if (debug2) sc.nextLine();
 		if (debug2) print(board);
 		if (debug) System.out.println("New cycle.");
 		if (debug) sc.nextLine();
-		if (dumbai && !name.matches("*Dumby")) name += "Dumby";
+		if (dumbai) name += "Dumby";
 		turn++;
 		if (!queue.isEmpty()) {
 			int temp = queue.removeFirst();
@@ -75,7 +88,7 @@ public class AI {
 		}*/
 		if (dumbai) {	
 			System.out.println(turn);
-			if (turn % 600 == 2) return KeyEvent.VK_DOWN;
+			if (turn % 600 == 599) return KeyEvent.VK_DOWN;
 			if (turn % 3 == 0) return KeyEvent.VK_UP;
 			if (turn % 6 < 3) return KeyEvent.VK_LEFT;
 			return KeyEvent.VK_RIGHT;
@@ -120,14 +133,15 @@ public class AI {
 		if (debug) print(board);
 		max_depth = 0;
 		for (int m = 0; m < 4; m++) {
-			if (debug) System.out.println("Now testing move: " + m);
+			if (debug) 
+				System.out.println("Now testing move: " + m);
 			int[][] sim = simulate(board, m);
 			if (Arrays.deepEquals(sim, board)) {
-				out.println("Move " + m + " invalid; skipping");
-				GameGUI.out.println("Move " + m + " invalid; skipping");
+				if (out != null) out.println("Move " + m + " invalid; skipping");
+				if (GameGUI.out != null) GameGUI.out.println("Move " + m + " invalid; skipping");
 				continue;
 			}
-			long worst = (long) 1999999999 * 100000000;
+			long worst = (long) 1999999999 * 1000000000;
 			long avg = 0;
 			int numt = 0;
 			for (int i = 0; i < 4; i++) {
@@ -145,7 +159,7 @@ public class AI {
 					numt += 10;
 				}
 			}
-			if (worst == (long) 1999999999 * 100000000) {
+			if (countBlank(sim) == 0) {
 				long temp = predictor(sim, iter_max/(int) pow((countBlank(sim) + 1), 2), 1);
 				if (temp < worst) worst = temp;
 				avg += temp;
@@ -155,13 +169,13 @@ public class AI {
 			worst = (worst_weight * worst + avg) / (worst_weight + 1);
 			if (countBlank(sim) >= 8 && max(board) < 64) worst = avg;
 			if (debug || debug2) System.out.println("Move " + m + " final eval: " + worst);
-			out.println("Move " + m + " final eval: " + worst);
-			GameGUI.out.println("Move " + m + " final eval: " + worst);
+			if (out != null) out.println("Move " + m + " final eval: " + worst);
+			if (GameGUI.out != null) GameGUI.out.println("Move " + m + " final eval: " + worst);
 			pref[m] += worst;
 		}
 		if (debug2) System.out.println("Max depth: " + max_depth);
-		out.println("Max depth: " + max_depth);
-		GameGUI.out.println("Max depth: " + max_depth);
+		if (out != null) out.println("Max depth: " + max_depth);
+		if (GameGUI.out != null) GameGUI.out.println("Max depth: " + max_depth);
 		
 		//System.out.println(5 + Math.random());
 		//process output
@@ -196,11 +210,15 @@ public class AI {
 			System.out.println(Arrays.toString(board[i]));
 		}
 		//sc.nextLine();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 		return KeyEvent.VK_LEFT;
 	}
 	
 	public static long predictor(int[][] board, int iters, int depth) { //returns future value, kinda
-		//System.out.println(Math.random());
+		//debnum+=4;
+		try {//System.out.println(Math.random());
 		if (depth > max_depth) max_depth = depth;
 		//if (max(board) < 64 && depth == 1) return grade(board);
 		int div = 0;
@@ -211,15 +229,21 @@ public class AI {
 		}
 		if (!movable(board, 0) && !movable(board, 1) && !movable(board, 2) && !movable(board, 3)) return (long) -1999999999 * 1000000;
 		div *= 2;
-		if (div > iters) return grade(board);
+		if (div > iters) {
+			//debnum-=4;
+			return grade(board);
+		}
 		iters /= div;
-		long best = (long) -1999999999*8000000;
+		long best = (long) -1999999999*800000000;
 		if (debug) print(board);
+		
+		
 		for (int m = 0; m < 4; m++) {
+			//debnum--;
 			int[][] sim = simulate(board, m);
 			if (Arrays.deepEquals(sim, board)) continue;
 			if (debug) System.out.println("Simulating: " + m);
-			long worst = (long) 1999999999*8000000;
+			long worst = (long) 1999999999*800000000;
 			long avg = 0;
 			int numt = 0;
 			for (int i = 0; i < 4; i++) {
@@ -237,8 +261,9 @@ public class AI {
 					numt+=10;
 				}
 			}
-			if (worst == (long) 1999999999 * 8000000) {
-				long temp = predictor(sim, iter_max/(int) pow((countBlank(sim) + 1), 2), 1);
+			if (countBlank(sim) == 0) {
+				//System.out.println("??");
+				long temp = predictor(sim, iter_max/(int) pow((countBlank(sim) + 1), 2), depth + 1);
 				if (temp < worst) worst = temp;
 				avg += temp;
 				numt++;
@@ -251,11 +276,16 @@ public class AI {
 			if (div >= 64 && max(board) < 64 && avg > best) best = avg; 
 		}
 		return best;
+		} catch (Exception e) {
+			e.printStackTrace();
+			return 0;
+		}
 	}
 	public static int[][] simulate(int[][] board, int direction) {
 		//Scanner sc = new Scanner(System.in);
 		//print(board);
 		//System.out.println(direction);
+		//fml.println(10);
 		int[][] out = new int[4][4];
 		for (int i = 0; i < 4; i++) {
 			for (int j = 0; j < 4; j++) {
@@ -286,6 +316,7 @@ public class AI {
 		if (direction % 2 == 1) transpose(out); // undo!
 		//print(out);
 		//sc.nextLine();
+		//fml.println(11);
 		return out;
 	}
 	public static long grade(int[][] board) {	
@@ -342,7 +373,7 @@ public class AI {
 		}
 		
 		//System.out.println(10 + Math.random());
-		if (max(board) > 128 || max(board) == board[0][0]) val -= 1200000 * (long) (max(board) - board[0][0]) * Math.pow(max(board), 3);
+		if (max(board) > 128 || max(board) == board[0][0]) val -= 1200000 * (long) (max(board) - board[0][0]) * pow(max(board), 2);
 			else val -= 120000 * (long) Math.sqrt(64 - board[0][0]);
 		if (board[0][0] > 0 && board[0][0] < 8 && max(board) > board[0][0]) val -= 100000000 / board[0][0];
 		if (Math.max(board[0][1], board[1][0]) > 0 && max(board) > 16)val -= 300 * (long) Math.max(0, max2(board) - Math.max(board[0][1], board[1][0])) * pow(max2(board), 2);
