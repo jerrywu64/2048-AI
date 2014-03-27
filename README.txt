@@ -1,5 +1,5 @@
 Last updated 3/26/2014 ~10:45 PM PST
-GUI uses Aditya Chopra's 2048 implementation as a base and has a few modifications. This version will occasionally be updated to reflect Aditya's updates, but this won't happen all the time because of said modifications.
+GUI uses Aditya Chopra's 2048 implementation as a base and has a few modifications. The AI is my own. This version will occasionally be updated to reflect Aditya's updates, but this won't happen all the time because of said modifications.
 
 To run: compile everything and run GameGUI. Warning: this program may create a LOT of output files. Files of the form AIReplay#.txt are created once every time the AI is started (after finishing all trials it's set to run). Files of the form IndivReplay.txt are created every time the AI plays a round.
 
@@ -14,5 +14,9 @@ thisAIIsCheating: if true, the AI cheats by creating a 2048 tile on the board. T
 iter_max: roughly how many subiterations will be run each time the AI is called (the AI will use recursion; this is roughly the number of method calls). AI will run more slowly but may perform better for higher values.
 worst_weight: How much the AI weights the worst-case scenario versus the average-case scenario, roughly.
 
-If a static variable is not mentioned in the above list, it should not be changed (changing it might do nothing or might crash the program).
+Adjustable settings (GameGUI.java, static variables):
+win_target: When a tile of this size appears, the game is over.
+sleep_time: Time in milliseconds the game sleeps between AI calls. If this is too short, the GUI may not update correctly.
+
+If a static variable is not mentioned in the above lists, it should not be changed (changing it might do nothing or might crash the program).
 
