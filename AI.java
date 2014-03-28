@@ -3,17 +3,17 @@ import java.util.*;
 import java.io.*;
 public class AI {
 	//Meta-Settings
-	public static final String VERSION = "1.2.2";
+	public static final String VERSION = "1.2.3";
 	public static String name = "WerryJu";
-	public static int trials = 40;
+	public static int trials = 50;
 	public static boolean autoRestart = true;
 	public static boolean recording = true;
 	private static boolean thisAIIsCheating = false;
 	
 	//Performance/Algorithm Settings
 	private static boolean dumbai = false;
-	private static int iter_max = 30000;
-	private static int worst_weight = 4; // worst is weighted weight:1 vs avg
+	private static int iter_max = 50000;
+	private static int worst_weight = 3; // worst is weighted weight:1 vs avg
 	
 	//Debug Settings
 	private static boolean debug = false;
@@ -218,20 +218,23 @@ public class AI {
 	
 	public static long predictor(int[][] board, int iters, int depth) { //returns future value, kinda
 		//debnum+=4;
-		try {//System.out.println(Math.random());
+		//System.out.println(Math.random());
 		if (depth > max_depth) max_depth = depth;
-		//if (max(board) < 64 && depth == 1) return grade(board);
+		//if (max(board) < 64 && depth == 1) return grade4(board);
 		int div = 0;
 		for (int i = 0; i < 4; i++) {
 			int[][] sim = simulate(board, i);
 			if (Arrays.deepEquals(sim, board)) continue;
 			div += countBlank(sim);
 		}
-		if (!movable(board, 0) && !movable(board, 1) && !movable(board, 2) && !movable(board, 3)) return (long) -1999999999 * 1000000;
+		if (!movable(board, 0) && !movable(board, 1) && !movable(board, 2) && !movable(board, 3)) {
+			//if (max(board) == GameGUI.win_target) return grade(board);
+			return (long) -1999999999 * 1000000;
+		}
 		div *= 2;
 		if (div > iters) {
 			//debnum-=4;
-			return grade(board);
+			return grade4(board);
 		}
 		iters /= div;
 		long best = (long) -1999999999*800000000;
@@ -272,38 +275,35 @@ public class AI {
 			avg /= numt;
 			if (debug) System.out.println("Result: " + worst);
 			if ((avg + worst_weight * worst) / (worst_weight + 1) > best) best = (worst_weight * worst + avg) / (worst_weight + 1);
-			if (worst > best) best = worst;
+			//if (worst > best) best = worst;
 			if (div >= 64 && max(board) < 64 && avg > best) best = avg; 
 		}
 		return best;
-		} catch (Exception e) {
-			e.printStackTrace();
-			return 0;
-		}
 	}
 	public static int[][] simulate(int[][] board, int direction) {
 		//Scanner sc = new Scanner(System.in);
 		//print(board);
 		//System.out.println(direction);
 		//fml.println(10);
-		int[][] out = new int[4][4];
+		int[][] out = new int[4][];
 		for (int i = 0; i < 4; i++) {
-			for (int j = 0; j < 4; j++) {
-				out[i][j] = board[i][j];
-			}
+			out[i] = Arrays.copyOf(board[i], 4);
 		}
 		if (direction % 2 == 1) transpose(out); // everything is left or right
 		if (direction / 2 == 1) flip(out); // everything is left
-		for (int i = 0; i < 4; i++) {
+		/*for (int i = 0; i < 4; i++) {
 			for (int j = 0; j < 3; j++) {
 				if (out[i][j] == 0) {
 					int index = j;
 					for (int k = j + 1; k < 4; k++) {
 						if (out[i][k] > 0) {
 							out[i][index] = out[i][k];
-							out[i][k] = 0;
+							//out[i][k] = 0;
 							index++;
 						}
+					}
+					for (int k = index; k < 4; k++) {
+						out[i][k] = 0;
 					}
 				}
 				if (out[i][j] == out[i][j + 1]) {
@@ -311,7 +311,27 @@ public class AI {
 					out[i][j + 1] = 0;
 				}
 			}
-		}		
+		}*/
+		for (int i = 0; i < 4; i++) {
+			int index = 0;
+			for (int j = 1; j < 4; j++) {
+				if (out[i][j] == 0) continue;
+				if (out[i][index] == 0) {
+					out[i][index] = out[i][j];
+					out[i][j] = 0;
+				} else if (out[i][index] == out[i][j]) {
+					out[i][index] *= 2;
+					out[i][j] = 0;
+					index++;
+				} else {
+					index++;
+					if (index == j) continue;
+					out[i][index] = out[i][j];
+					out[i][j] = 0;
+				}
+			}
+		}
+					
 		if (direction / 2 == 1) flip(out); // undo!
 		if (direction % 2 == 1) transpose(out); // undo!
 		//print(out);
@@ -319,35 +339,75 @@ public class AI {
 		//fml.println(11);
 		return out;
 	}
+	public static long grade4(int[][] board) {// finds best corner to grade from
+		int loc = maxfind(board);
+		int bcorner = 0;
+		if (board[0][3] > board[0][0]) bcorner = 3;
+		if (board[3][0] > board[0][bcorner]) bcorner = 30;
+		if (board[3][3] > board[bcorner / 10][bcorner % 10]) bcorner = 33;
+		if (loc % 10 > 1) flip(board);
+		if (loc / 10 > 1) flipv(board);
+		long high = grade(board);
+		if (loc / 10 > 1) flipv(board);
+		if (loc % 10 > 1) flip(board);
+		if ((bcorner % 10) / 2 == (loc % 10) / 2 && bcorner / 10 / 2 == loc / 10 / 2) return high;
+		if (bcorner % 10 > 1) flip(board);
+		if (bcorner / 10 > 1) flipv(board);
+		long corn = grade(board);
+		if (bcorner / 10 > 1) flipv(board);
+		if (bcorner % 10 > 1) flip(board);
+		if (high > corn) return high;
+		return corn;
+		
+		// //this isn't right btw
+		// long best = grade(board);
+		// flip(board);
+		// long temp = grade(board);
+		// if (temp > best) best = temp; // top right
+		// transpose(board);
+		// temp = grade(board);
+		// if (temp > best) best = temp; // bottom left
+		// flip(board);
+		// temp = grade(board);
+		// if (temp > best) best = temp; // bottom right
+		// flip(board); // undo everything
+		// transpose(board);
+		// flip(board);
+		// /*
+		// top right: flip
+		// bottom left: flipv
+		// bottom right: flip, flipv
+		// */
+		// return best;
+	}
+		
 	public static long grade(int[][] board) {	
 		//System.out.println(1 + Math.random());
 		if (debug) System.out.println("Graded: ");
 		if (debug) print(board);
-		if (max(board) >= GameGUI.win_target) return (long) 1999999999 * 900000;
+		int max_board = max(board);
+		if (max_board >= GameGUI.win_target) return (long) 1999999999 * 200 * max_board;
 		//if (turn < 12 && board[0][0] < Math.min(board[0][1], board[1][0])) return -999999999;
 		long val = 0;
 		//sums
 		//System.out.println(9 + Math.random());
 		for (int i = 0; i < 4; i++) {
 			for (int j = 0; j < 4; j++) {
-				int num = 0;
+				int num = 2 * i + j;
 				for (int k = 0; k < j; k++) {
 					if (board[i][k] > 0) num++;
-					num++;
 				}
 				for (int k = 0; k < i; k++) {
 					if (board[k][j] > 0) num++;
-					num+=2;
 				}
-				num = num * 2 /3;
-				num = 12 - num;
-				val += (long) (pow(2, num) - 3072/(long) Math.sqrt(max(board))) * pow(board[i][j], 3) / 100; // roughly delta = 200 * num^2
+				num = 12 - num * 2 /3;
+				val += (long) (pow(2, num) - 3072/(long) Math.sqrt(max_board)) * pow(board[i][j], 3) / 100; // roughly delta = 200 * num^2
 			}
 		}
 		if (countBlank(board) > 0) {
-			val -= 10000/pow(countBlank(board), 3) * max(board);
+			val -= 10000/pow(countBlank(board), 3) * max_board;
 		} else {
-			val -= 120000 * max(board);
+			val -= 120000 * max_board;
 		}
 		//bad joints
 		//System.out.println(8 + Math.random());
@@ -373,15 +433,16 @@ public class AI {
 		}
 		
 		//System.out.println(10 + Math.random());
-		if (max(board) > 128 || max(board) == board[0][0]) val -= 1200000 * (long) (max(board) - board[0][0]) * pow(max(board), 2);
+		if (max_board > 128 || max_board == board[0][0]) val -= 1200000 * (long) (max_board - board[0][0]) * pow(max_board, 2);
 			else val -= 120000 * (long) Math.sqrt(64 - board[0][0]);
-		if (board[0][0] > 0 && board[0][0] < 8 && max(board) > board[0][0]) val -= 100000000 / board[0][0];
-		if (Math.max(board[0][1], board[1][0]) > 0 && max(board) > 16)val -= 300 * (long) Math.max(0, max2(board) - Math.max(board[0][1], board[1][0])) * pow(max2(board), 2);
+		if (board[0][0] < 8 && board[0][0] > 0 && max_board > board[0][0]) val -= 100000000 / board[0][0];
+		if ((board[0][1] > 0 || board[1][0] > 0) && max_board > 16)val -= 300 * (long) Math.max(0, max2(board) - Math.max(board[0][1], board[1][0])) * pow(max2(board), 2);
 		if (debug) System.out.println("Result: " + val);
 		if (debug) sc.nextLine();
 		//System.out.println(7 + Math.random());
 		return val;
 	}
+	
 	//aux
 	public static int rank(int[][] board, int val) {
 		int out = 1;
@@ -414,6 +475,19 @@ public class AI {
 		}
 		return sec;
 	}
+	public static int maxfind(int[][] board) { // returns 10 * i + j
+		int r = 0;
+		int c = 0;
+		for (int i = 0; i < 4; i++) {
+			for (int j = 0; j < 4; j++) {
+				if (board[i][j] > board[r][c]) {
+					r = i;
+					c = j;
+				}
+			}
+		}
+		return 10 * r + c;
+	}
 	public static long pow(int b, int e) {
 		long out = 1;
 		for (int i = 0; i < e; i++) {
@@ -432,7 +506,7 @@ public class AI {
 	}
 	public static void transpose(int[][] board) {
 		for (int i = 0; i < 4; i++) {
-			for (int j = i; j < 4; j++) {
+			for (int j = i + 1; j < 4; j++) {
 				int temp = board[i][j];
 				board[i][j] = board[j][i];
 				board[j][i] = temp;
@@ -446,6 +520,16 @@ public class AI {
 				int temp = board[i][j];
 				board[i][j] = board[i][3 - j];
 				board[i][3 - j] = temp;
+			}
+		}
+	}
+	public static void flipv(int[][] board) {
+		//flips vertically
+		for (int i = 0; i < 2; i++) {
+			for (int j = 0; j < 4; j++) {
+				int temp = board[i][j];
+				board[i][j] = board[3 - i][j];
+				board[3-i][j] = temp;
 			}
 		}
 	}
