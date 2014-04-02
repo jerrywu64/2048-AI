@@ -3,9 +3,9 @@ import java.util.*;
 import java.io.*;
 public class AI {
 	//Meta-Settings
-	public static final String VERSION = "1.5.9";
+	public static final String VERSION = "1.5.8";
 	public static String name = "WerryJu";
-	public static int trials = 10;
+	public static int trials = 30;
 	public static boolean autoRestart = true;
 	public static boolean recording = true;
 	private static boolean thisAIIsCheating = false;
@@ -447,9 +447,9 @@ public class AI {
 		}
 		
 		//System.out.println(10 + Math.random());
-		if (max_board > board[0][0]) val -= 12000 * (long) (sum_board / 2 - board[0][0]) * pow((sum_board) / 2, 2) * (delta(sum_board * 7 / 8) > sum_board / 12?10:1);
+		if (max_board > board[0][0]) val -= 12000 * (long) (sum_board / 2 - board[0][0]) * pow((sum_board) / 2, 2) * (delta(sum_board) > sum_board / 12?10:1);
 		if ((board[0][1] > 0 || board[1][0] > 0) && max_board > 16 && max2_board > Math.max(board[0][1], board[1][0]))
-			val -= 3600 * (long) Math.max(0, Math.max(max2_board, sum_board / 3) - Math.max(board[0][1], board[1][0])) * pow(sum_board / 3 , 2) * (delta(sum_board * 7 / 8) > sum_board / 6?10:1);
+			val -= 3600 * (long) Math.max(0, Math.max(max2_board, sum_board / 3) - Math.max(board[0][1], board[1][0])) * pow(sum_board / 3 , 2) * (delta(sum_board) > sum_board / 6?10:1);
 		if (debug) System.out.println("Result: " + val);
 		if (debug) sc.nextLine();
 		//if (4 * board[0][1] + board[0][2] < 4 * board[1][0] + board[2][0]) transpose(board);

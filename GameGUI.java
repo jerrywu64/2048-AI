@@ -14,7 +14,7 @@ import javax.swing.*;
 
 public class GameGUI extends javax.swing.JFrame {
 	//Settings
-    public static int win_target = 2048;
+    public static int win_target = 8192;
     public static int sleep_time = 10;
 
 	//Data (don't touch)
@@ -1143,6 +1143,7 @@ public class GameGUI extends javax.swing.JFrame {
     }
     private void ai() {
         if (ai && !airunning) {
+			System.out.println("Running AI version " + AI.VERSION);
 			//System.out.println("Hello!");
 			airunning = true;
             new SwingWorker<Integer, Integer>() {
@@ -1223,6 +1224,7 @@ public class GameGUI extends javax.swing.JFrame {
                                 updateColors();
                                 ai.trials--;
 								System.out.println("Trials remaining: " + ai.trials);
+								System.out.println("Current wins: " + totalWins + "/" + (totalWins + totalLosses));
 								if (AI.out != null) AI.out.println("===NEW GAME===");
 								if (out != null) out.close();
 								if (out != null) out = null;
@@ -1243,6 +1245,7 @@ public class GameGUI extends javax.swing.JFrame {
                                 updateColors();
                                 ai.trials--;
 								System.out.println("Trials remaining: " + ai.trials);
+								System.out.println("Current wins: " + totalWins + "/" + (totalWins + totalLosses));
 								if (AI.out != null) AI.out.println("===NEW GAME===");
 								if (out != null) out.close();
 								if (out != null) out = null;

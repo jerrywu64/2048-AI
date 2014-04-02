@@ -3,9 +3,9 @@ import java.util.*;
 import java.io.*;
 public class AI {
 	//Meta-Settings
-	public static final String VERSION = "1.5.9";
+	public static final String VERSION = "1.5.5";
 	public static String name = "WerryJu";
-	public static int trials = 10;
+	public static int trials = 30;
 	public static boolean autoRestart = true;
 	public static boolean recording = true;
 	private static boolean thisAIIsCheating = false;
@@ -392,7 +392,7 @@ public class AI {
 		if (debug) print(board);
 		int max_board = max(board);
 		int sum_board = sum(board);
-		if (max_board >= GameGUI.win_target) return (long) 1999999999 * 100 * max_board + (board[0][0] == GameGUI.win_target?100:0);
+		if (max_board >= GameGUI.win_target) return (long) 1999999999 * 100 * sum_board + (board[0][0] == GameGUI.win_target?100:0);
 		int max2_board = max2(board);
 		int p, q;
 		long val = 0;
@@ -434,8 +434,14 @@ public class AI {
 		int s = (p + 2 * q) / 6;
 		for (int i = 0; i < 3; i++) {
 			for (int j = 0; j < 3; j++) {
-				int max1 = board[i][j + 1];
-				int max2 = board[i + 1][j];
+				int max1 = 0;
+				for (int k = 1; k < 4 - i; k++) {
+					if (board[i + k][j] > max1) max1 = board[i + k][j];
+				}
+				int max2 = 0;
+				for (int k = 1; k < 4 - j; k++) {
+					if (board[i][j + k] > max2) max2 = board[i][j + k];
+				}
 				max1 = max2 + max2;
 				max2 = Math.min(max2, max1-max2);
 				max1 -= max2;
@@ -447,9 +453,9 @@ public class AI {
 		}
 		
 		//System.out.println(10 + Math.random());
-		if (max_board > board[0][0]) val -= 12000 * (long) (sum_board / 2 - board[0][0]) * pow((sum_board) / 2, 2) * (delta(sum_board * 7 / 8) > sum_board / 12?10:1);
+		if (max_board > board[0][0]) val -= 12000 * (long) (sum_board / 2 - board[0][0]) * pow((sum_board) / 2, 2) * (delta(sum_board) > sum_board / 12?10:1);
 		if ((board[0][1] > 0 || board[1][0] > 0) && max_board > 16 && max2_board > Math.max(board[0][1], board[1][0]))
-			val -= 3600 * (long) Math.max(0, Math.max(max2_board, sum_board / 3) - Math.max(board[0][1], board[1][0])) * pow(sum_board / 3 , 2) * (delta(sum_board * 7 / 8) > sum_board / 6?10:1);
+			val -= 24000 * (long) Math.max(0, Math.max(max2_board, sum_board / 3) - Math.max(board[0][1], board[1][0])) * pow(sum_board / 3 , 2);
 		if (debug) System.out.println("Result: " + val);
 		if (debug) sc.nextLine();
 		//if (4 * board[0][1] + board[0][2] < 4 * board[1][0] + board[2][0]) transpose(board);

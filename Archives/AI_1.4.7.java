@@ -3,9 +3,9 @@ import java.util.*;
 import java.io.*;
 public class AI {
 	//Meta-Settings
-	public static final String VERSION = "1.5.9";
+	public static final String VERSION = "1.4.7";
 	public static String name = "WerryJu";
-	public static int trials = 10;
+	public static int trials = 50;
 	public static boolean autoRestart = true;
 	public static boolean recording = true;
 	private static boolean thisAIIsCheating = false;
@@ -13,9 +13,8 @@ public class AI {
 	//Performance/Algorithm Settings
 	private static boolean dumbai = false;
 	private static int iter_max = 50000;
-	private static int worst_weight = 2; // worst is weighted weight:1 vs avg
-	private static int asym_greater = 2; // dist from "lighter" edge weight (see grade())
-	private static int asym_lesser = 7; // dist from "heavier" edge weight (see grade())
+	private static int worst_weight = 3; // worst is weighted weight:1 vs avg
+	private static int asym_weight = 5; // dist from "heavier" edge is weighted weight:1 (see grade())
 	
 	//Debug Settings
 	private static boolean debug = false;
@@ -29,10 +28,7 @@ public class AI {
 	public static PrintWriter fml = null;
 	private static int max_depth = 0;
 	public static String filename = "no output";
-	public static long debnum = 0; // debug	
-	public static boolean[] powstor = new boolean[20];
-	public static long[] powval = new long[20];
-	
+	public static long debnum = 0; // debug
 	
 	public static int ai_move (int[][] board) {
 		try {
@@ -234,7 +230,7 @@ public class AI {
 		}
 		if (!movable(board, 0) && !movable(board, 1) && !movable(board, 2) && !movable(board, 3)) {
 			//if (max(board) == GameGUI.win_target) return grade(board);
-			return (long) -1999999999 * 3 * sum(board);
+			return (long) -1999999999 * 1000000;
 		}
 		div *= 2;
 		if (div > iters) {
@@ -285,65 +281,7 @@ public class AI {
 		}
 		return best;
 	}
-	public static int[][] simulate(int[][] board, int direction) {
-		//Scanner sc = new Scanner(System.in);
-		//print(board);
-		//System.out.println(direction);
-		//fml.println(10);
-		int[][] out = new int[4][];
-		for (int i = 0; i < 4; i++) {
-			out[i] = Arrays.copyOf(board[i], 4);
-		}
-		if (direction % 2 == 1) transpose(out); // everything is left or right
-		if (direction / 2 == 1) flip(out); // everything is left
-		/*for (int i = 0; i < 4; i++) {
-			for (int j = 0; j < 3; j++) {
-				if (out[i][j] == 0) {
-					int index = j;
-					for (int k = j + 1; k < 4; k++) {
-						if (out[i][k] > 0) {
-							out[i][index] = out[i][k];
-							//out[i][k] = 0;
-							index++;
-						}
-					}
-					for (int k = index; k < 4; k++) {
-						out[i][k] = 0;
-					}
-				}
-				if (out[i][j] == out[i][j + 1]) {
-					out[i][j] *= 2;
-					out[i][j + 1] = 0;
-				}
-			}
-		}*/
-		for (int i = 0; i < 4; i++) {
-			int index = 0;
-			for (int j = 1; j < 4; j++) {
-				if (out[i][j] == 0) continue;
-				if (out[i][index] == 0) {
-					out[i][index] = out[i][j];
-					out[i][j] = 0;
-				} else if (out[i][index] == out[i][j]) {
-					out[i][index] *= 2;
-					out[i][j] = 0;
-					index++;
-				} else {
-					index++;
-					if (index == j) continue;
-					out[i][index] = out[i][j];
-					out[i][j] = 0;
-				}
-			}
-		}
-					
-		if (direction / 2 == 1) flip(out); // undo!
-		if (direction % 2 == 1) transpose(out); // undo!
-		//print(out);
-		//sc.nextLine();
-		//fml.println(11);
-		return out;
-	}
+	
 	public static long grade4(int[][] board) {// finds best corner to grade from
 		int loc = maxfind(board);
 		int bcorner = 0;
@@ -363,27 +301,6 @@ public class AI {
 		if (bcorner % 10 > 1) flip(board);
 		if (high > corn) return high;
 		return corn;
-		
-		// //this isn't right btw
-		// long best = grade(board);
-		// flip(board);
-		// long temp = grade(board);
-		// if (temp > best) best = temp; // top right
-		// transpose(board);
-		// temp = grade(board);
-		// if (temp > best) best = temp; // bottom left
-		// flip(board);
-		// temp = grade(board);
-		// if (temp > best) best = temp; // bottom right
-		// flip(board); // undo everything
-		// transpose(board);
-		// flip(board);
-		// /*
-		// top right: flip
-		// bottom left: flipv
-		// bottom right: flip, flipv
-		// */
-		// return best;
 	}
 		
 	public static long grade(int[][] board) {	
@@ -391,9 +308,9 @@ public class AI {
 		if (debug) System.out.println("Graded: ");
 		if (debug) print(board);
 		int max_board = max(board);
-		int sum_board = sum(board);
-		if (max_board >= GameGUI.win_target) return (long) 1999999999 * 100 * max_board + (board[0][0] == GameGUI.win_target?100:0);
+		if (max_board >= GameGUI.win_target) return (long) 1999999999 * 200 * max_board;
 		int max2_board = max2(board);
+		int sum_board = sum(board);
 		int p, q;
 		long val = 0;
 		if (max_board != board[0][0]) {
@@ -406,12 +323,12 @@ public class AI {
 			}
 		} else {
 			if (4 * board[0][1] + board[0][2] < 4 * board[1][0] + board[2][0]) {
-				p = asym_lesser;
-				q = asym_greater;
+				p = 1;
+				q = asym_weight;
 				if (locked2(board)) val += 2000 * board[0][0];
 			} else {
-				p = asym_greater;
-				q = asym_lesser;
+				p = asym_weight;
+				q = 1;
 				if (locked(board)) val += 2000 * board[0][0];
 			}
 		}
@@ -420,36 +337,52 @@ public class AI {
 		//System.out.println(9 + Math.random());
 		for (int i = 0; i < 4; i++) {
 			for (int j = 0; j < 4; j++) {
-				val += (long) (pow(2, 17 - p * i - q * j) - 96/(long) Math.sqrt(max_board)) * pow(board[i][j], 2 - (p * i + q * j) / (p + q)); 
+				int num = p * i + q * j;
+				for (int k = 0; k < j; k++) {
+					if (board[i][k] > 0) num++;
+				}
+				for (int k = 0; k < i; k++) {
+					if (board[k][j] > 0) num++;
+				}
+				num = 12 - num * 2 /3;
+				val += (long) (pow(2, num) - 384/(long) Math.sqrt(max_board)) * pow(board[i][j], 3 - (p * i + q * j) / (p + q)) / 100; 
 			}
 		}
 		if (countBlank(board) > 0) {
-			val -= 5000/pow(countBlank(board), 2) * max_board;
+			val -= 10000/pow(countBlank(board), 3) * max_board;
 		} else {
-			val -= 24000 * max_board;
+			val -= 120000 * max_board;
 		}
-		//bad joints
-		//System.out.println(8 + Math.random());
-		int r = (2 * p + q) / 6;
-		int s = (p + 2 * q) / 6;
+		int r = (2 * p + q) / 3;
+		int s = (p + 2 * q) / 3;
 		for (int i = 0; i < 3; i++) {
 			for (int j = 0; j < 3; j++) {
-				int max1 = board[i][j + 1];
-				int max2 = board[i + 1][j];
+				int max1 = 0;
+				for (int k = 1; k < 4 - i; k++) {
+					if (board[i + k][j] > max1) max1 = board[i + k][j];
+				}
+				int max2 = 0;
+				for (int k = 1; k < 4 - j; k++) {
+					if (board[i][j + k] > max2) max2 = board[i][j + k];
+				}
 				max1 = max2 + max2;
 				max2 = Math.min(max2, max1-max2);
 				max1 -= max2;
+				long pwr = pow(2, 14 - r * i - s * j);
 				if (board[i][j] > 0 && board[i][j] < max1) 
-					val -= (pow(max1 - board[i][j], 1) + 2 * pow(max1 / board[i][j] - 1, 1)) * pow(2, 12 - r * i - s * j) * pow(sum_board, 2) / 64;
+					val -= (pow(max1 - board[i][j], 1) + pow(max1 / board[i][j] - 1, 1)) * pwr * pow(sum_board, 1) * 2;
 				if (board[i][j] > 0 && board[i][j] < max2)
-					val -= (pow(max2 - board[i][j], 1) + 2 * pow(max2 / board[i][j] - 1, 1)) * pow(2, 12 - r * i - s * j) * pow(sum_board, 2) / 16;
+					val -= (pow(max2 - board[i][j], 1) + pow(max2 / board[i][j] - 1, 1)) * pwr * pow(sum_board, 1) * 5;
 			}
 		}
 		
 		//System.out.println(10 + Math.random());
-		if (max_board > board[0][0]) val -= 12000 * (long) (sum_board / 2 - board[0][0]) * pow((sum_board) / 2, 2) * (delta(sum_board * 7 / 8) > sum_board / 12?10:1);
-		if ((board[0][1] > 0 || board[1][0] > 0) && max_board > 16 && max2_board > Math.max(board[0][1], board[1][0]))
-			val -= 3600 * (long) Math.max(0, Math.max(max2_board, sum_board / 3) - Math.max(board[0][1], board[1][0])) * pow(sum_board / 3 , 2) * (delta(sum_board * 7 / 8) > sum_board / 6?10:1);
+		if (max_board > board[0][0]) {
+			val -= 1200000 * (long) (sum_board / 2 - board[0][0]) * pow(sum_board / 2, 2);
+		}
+		if (board[0][0] < 8 && board[0][0] > 0 && max_board > board[0][0]) val -= 100000000 / board[0][0];
+		if ((board[0][1] > 0 || board[1][0] > 0) && max_board > 16)
+			val -= 3000 * (long) Math.max(0, max2_board - Math.max(board[0][1], board[1][0])) * pow(sum_board / 4, 3);
 		if (debug) System.out.println("Result: " + val);
 		if (debug) sc.nextLine();
 		//if (4 * board[0][1] + board[0][2] < 4 * board[1][0] + board[2][0]) transpose(board);
@@ -458,6 +391,7 @@ public class AI {
 	}
 	
 	//aux
+	
 	public static boolean locked(int[][] board) {	
 		for (int i = 0; i < 4; i++) {
 			if (board[0][i] == 0) return false;
@@ -530,23 +464,11 @@ public class AI {
 		return out;
 	}
 	public static long pow(int b, int e) {
-		if (b == 2) {
-			if (e < 1) return 1;
-			if (powstor[e]) return powval[e];
-			powval[e] = 2 * pow(2, e - 1);
-			powstor[e] = true;
-			return powval[e];
-		}
 		long out = 1;
 		for (int i = 0; i < e; i++) {
 			out *= b;
 		}
 		return out;
-	}
-	public static int delta(int num) {
-		int val = 1;
-		while (val * 2 < num) val *= 2;
-		return (num - val);
 	}
 	public static int countBlank(int[][] board) {
 		int out = 0;
@@ -661,5 +583,43 @@ public class AI {
 				return false;
 		}
 		return false;
+	}
+	public static int[][] simulate(int[][] board, int direction) {
+		//Scanner sc = new Scanner(System.in);
+		//print(board);
+		//System.out.println(direction);
+		//fml.println(10);
+		int[][] out = new int[4][];
+		for (int i = 0; i < 4; i++) {
+			out[i] = Arrays.copyOf(board[i], 4);
+		}
+		if (direction % 2 == 1) transpose(out); // everything is left or right
+		if (direction / 2 == 1) flip(out); // everything is left
+		for (int i = 0; i < 4; i++) {
+			int index = 0;
+			for (int j = 1; j < 4; j++) {
+				if (out[i][j] == 0) continue;
+				if (out[i][index] == 0) {
+					out[i][index] = out[i][j];
+					out[i][j] = 0;
+				} else if (out[i][index] == out[i][j]) {
+					out[i][index] *= 2;
+					out[i][j] = 0;
+					index++;
+				} else {
+					index++;
+					if (index == j) continue;
+					out[i][index] = out[i][j];
+					out[i][j] = 0;
+				}
+			}
+		}
+					
+		if (direction / 2 == 1) flip(out); // undo!
+		if (direction % 2 == 1) transpose(out); // undo!
+		//print(out);
+		//sc.nextLine();
+		//fml.println(11);
+		return out;
 	}
 }
