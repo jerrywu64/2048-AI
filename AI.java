@@ -2,13 +2,12 @@ import java.awt.event.*;
 import java.util.*;
 import java.io.*;
 public class AI {
-	//Meta-Settings
+	//Version (duh)
 	public static final String VERSION = "1.5.9";
-	public static String name = "WerryJu";
-	public static int trials = 10;
-	public static boolean autoRestart = true;
+	//Meta-Settings
+	public static String name = "WerryJu"; // this field is currently obsolete
 	public static boolean recording = true;
-	private static boolean thisAIIsCheating = false;
+	private static boolean thisAIIsCheating = false; // is the AI cheating?
 	
 	//Performance/Algorithm Settings
 	private static boolean dumbai = false;
@@ -33,6 +32,9 @@ public class AI {
 	public static boolean[] powstor = new boolean[20];
 	public static long[] powval = new long[20];
 	
+	public AI() {
+		System.out.println("Running AI version " + AI.VERSION);
+	}
 	
 	public static int ai_move (int[][] board) {
 		try {
@@ -61,7 +63,7 @@ public class AI {
 		}
 		//if (fml == null) fml = new PrintWriter (new File("fmldebug.txt"));
 		if (thisAIIsCheating && max(board) < 8) {
-			board[0][0] = 2048;
+			board[0][0] = GameGUI.win_target;
 		}
 		if (debug2) sc.nextLine();
 		if (debug2) print(board);
@@ -92,11 +94,14 @@ public class AI {
 		sc.nextLine();
 		}*/
 		if (dumbai) {	
+			if (!name.endsWith("Dumby")) name += "Dumby";
 			System.out.println(turn);
 			if (turn % 600 == 599) return KeyEvent.VK_DOWN;
 			if (turn % 3 == 0) return KeyEvent.VK_UP;
 			if (turn % 6 < 3) return KeyEvent.VK_LEFT;
 			return KeyEvent.VK_RIGHT;
+		} else {
+			if (name.indexOf(".") < 0) name += VERSION;
 		}
 		//gamestart processing
 		/*if(board[0][0] == 0) {
