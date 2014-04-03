@@ -1,4 +1,4 @@
-Last updated 3/27s/2014 ~10:45 AM PST
+Last updated 4/2/2014 ~5:00 PM PST
 GUI uses Aditya Chopra's 2048 implementation as a base and
 	has a few modifications. The AI is my own. This version
 	will occasionally be updated to reflect Aditya's updates,
