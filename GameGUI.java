@@ -17,9 +17,9 @@ public class GameGUI extends javax.swing.JFrame {
     private static String ai_name = "defaultBot";
     private static boolean ai = true;
     private static boolean ai_autoRestart = true;
-    private static int ai_trials = 3;
-    public static int win_target = 2048;
-    public static int sleep_time = 10;
+    private static int ai_trials = 100;
+    public static int win_target = 4096;
+    public static int sleep_time = 5;
     public static boolean funky_fonts = false;
 	
 	//data storage -- don't touch
@@ -41,9 +41,10 @@ public class GameGUI extends javax.swing.JFrame {
 		print movement after movement is made
 		print stuff in victory +do other stuff (2 different places)
 		do similar stuff for loss (2 different places)
-		AI.out print move for non-autorestarting
-		AI.out output win/loss for non-autorestarting
+		ai.out print move for non-autorestarting
+		ai.out output win/loss for non-autorestarting
 		Swingworker done() method: print output file, close stuff, set not running
+		move final AI ai = new AI() outside of SwingWorker
 	*/
 	
     public GameGUI() {
@@ -1333,9 +1334,9 @@ public class GameGUI extends javax.swing.JFrame {
     private void ai() {
         if (ai) {
             ai_not_running = false;
+            final AI ai = new AI();
             new SwingWorker<Integer, Integer>() {
                 protected Integer doInBackground() {
-                    final AI ai = new AI();
                     jTextField1.setText(ai_name);
                     if (ai_autoRestart) {
                         int totalScore = 0;
@@ -1372,8 +1373,8 @@ public class GameGUI extends javax.swing.JFrame {
 							}
                             int id = ai.ai_move(board);
                             updateBoard(id, true);
-							if (AI.out != null) AI.out.println();
-							if (AI.out != null) AI.out.println("Moved: " + AI.translate(id));
+							if (ai.out != null) ai.out.println();
+							if (ai.out != null) ai.out.println("Moved: " + AI.translate(id));
 							if (out != null) out.println();
 							if (out != null) out.println("Moved: " + AI.translate(id));
                             try {
@@ -1385,7 +1386,7 @@ public class GameGUI extends javax.swing.JFrame {
                             //no high score stuff
                             if (checkWin()) {
 								System.out.println("Victory!" + " (" + filename + ")");
-								if (AI.out != null) AI.out.println("Victory!");
+								if (ai.out != null) ai.out.println("Victory!");
 								if (out != null) out.println("Victory!");
                                 totalWins++;
                                 totalScore += currentScore;
@@ -1398,13 +1399,13 @@ public class GameGUI extends javax.swing.JFrame {
                                 ai_trials--;
 								System.out.println("Trials remaining: " + ai_trials);
 								System.out.println("Current wins: " + totalWins + "/" + (totalWins + totalLosses));
-								if (AI.out != null && ai_trials > 0) AI.out.println("===NEW GAME===");
+								if (ai.out != null && ai_trials > 0) ai.out.println("===NEW GAME===");
 								if (out != null) out.close();
 								if (out != null) out = null;
                             }
                             if (checkLoss()) {
 								System.out.println("Loss: " + AI.max(board) + " (" + filename + ")");
-								if (AI.out != null) AI.out.println("Loss: " + AI.max(board));
+								if (ai.out != null) ai.out.println("Loss: " + AI.max(board));
 								if (out != null) out.println("Loss: " + AI.max(board));
                                 totalLosses++;
                                 totalScore += currentScore;
@@ -1417,7 +1418,7 @@ public class GameGUI extends javax.swing.JFrame {
                                 ai_trials--;
 								System.out.println("Trials remaining: " + ai_trials);
 								System.out.println("Current wins: " + totalWins + "/" + (totalWins + totalLosses));
-								if (AI.out != null && ai_trials > 0) AI.out.println("===NEW GAME===");
+								if (ai.out != null && ai_trials > 0) ai.out.println("===NEW GAME===");
 								if (out != null) out.close();
 								if (out != null) out = null;
                             }
@@ -1463,8 +1464,8 @@ public class GameGUI extends javax.swing.JFrame {
                     while (!checkWin() && !checkLoss() && !ai_autoRestart) {
                         int id = ai.ai_move(board);
                         updateBoard(id, true);
-						if (AI.out != null) AI.out.println();
-						if (AI.out != null) AI.out.println("Moved: " + AI.translate(id));
+						if (ai.out != null) ai.out.println();
+						if (ai.out != null) ai.out.println("Moved: " + AI.translate(id));
                         publish(0);
                         if (currentScore > highScore) {
                             highScore = currentScore;
@@ -1477,14 +1478,14 @@ public class GameGUI extends javax.swing.JFrame {
                     }
                     if (checkWin()) {
                         jFrame1.setVisible(true);
-						if (AI.out != null) AI.out.println("Victory!");
+						if (ai.out != null) ai.out.println("Victory!");
                     }
                     if (checkLoss()) {
                         jLabel24.setText("Game over!");
                         jLabel24.setForeground(new java.awt.Color(119, 110, 101));
                         jPanel1.setBackground(new java.awt.Color(238, 228, 218));
                         jFrame1.setVisible(true);
-						if (AI.out != null) AI.out.println("Loss: " + AI.max(board));
+						if (ai.out != null) ai.out.println("Loss: " + AI.max(board));
                     }
                     return 0;
                 }
@@ -1494,11 +1495,11 @@ public class GameGUI extends javax.swing.JFrame {
                 }
 				protected void done() {
 					System.out.println("Output file: " + AI.filename);
-					if (AI.out != null) {
-						AI.out.close();
-						AI.out = null;
+					if (ai.out != null) {
+						ai.out.close();
+						ai.out = null;
 					}
-					if (AI.fml != null) AI.fml.close();
+					if (ai.fml != null) ai.fml.close();
 					ai_not_running = true;
 					//System.out.println(AI.debnum);
 				}

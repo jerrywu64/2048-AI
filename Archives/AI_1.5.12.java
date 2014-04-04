@@ -3,7 +3,7 @@ import java.util.*;
 import java.io.*;
 public class AI {
 	//Version (duh)
-	public static final String VERSION = "1.6.3";
+	public static final String VERSION = "1.5.12";
 	//Meta-Settings
 	public String name = "WerryJu"; // this field is currently obsolete
 	public static boolean recording = true;
@@ -254,7 +254,7 @@ public class AI {
 		}
 		if (!movable(board, 0) && !movable(board, 1) && !movable(board, 2) && !movable(board, 3)) {
 			//if (max(board) == GameGUI.win_target) return grade(board);
-			return (long) -1999999999 * 3 * sum_board;
+			return (long) -1999999999 * 3 * sum(board);
 		}
 		div *= 2;
 		if (div > iters) {
@@ -450,19 +450,19 @@ public class AI {
 		}
 		//bad joints
 		//System.out.println(8 + Math.random());
-		//int r = (2 * p + q) / 6;
-		//int s = (p + 2 * q) / 6;
+		int r = (2 * p + q) / 6;
+		int s = (p + 2 * q) / 6;
 		for (int i = 0; i < 3; i++) {
 			for (int j = 0; j < 3; j++) {
 				int max1 = board[i][j + 1];
 				int max2 = board[i + 1][j];
-				max1 += max2;
+				max1 = max2 + max2;
 				max2 = Math.min(max2, max1-max2);
 				max1 -= max2;
 				if (board[i][j] > 0 && board[i][j] < max1) 
-					val -= (pow(max1 - board[i][j], 1) + 2 * pow(max1 / board[i][j] - 1, 1)) * 1024 * pow(sum_board, 2) / 64;
+					val -= (pow(max1 - board[i][j], 1) + 2 * pow(max1 / board[i][j] - 1, 1)) * pow(2, 12 - r * i - s * j) * pow(sum_board, 2) / 64;
 				if (board[i][j] > 0 && board[i][j] < max2)
-					val -= (pow(max2 - board[i][j], 1) + 2 * pow(max2 / board[i][j] - 1, 1)) * 1024 * pow(sum_board, 2) / 16;
+					val -= (pow(max2 - board[i][j], 1) + 2 * pow(max2 / board[i][j] - 1, 1)) * pow(2, 12 - r * i - s * j) * pow(sum_board, 2) / 16;
 			}
 		}
 		

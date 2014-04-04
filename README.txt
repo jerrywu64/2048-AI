@@ -13,7 +13,7 @@ To run: compile everything and run GameGUI. Warning: this
 	the AI plays a round. Change the "recording" setting 
 	(see below) to disable this.
 
-Adjustable settings (AI.java, static variables):
+Adjustable settings (AI.java, global variables):
 name: Name of the AI as recorded in the high scores. (scores.txt)
 	The usage of this field has been deprecated at least for now.
 recording: whether or not the program will output files (game 
@@ -58,7 +58,7 @@ Variables which are listed as adjustable from the GUI can be
 	Changing it in the source code changes the default value, 
 	however. 
 
-If a static variable is not mentioned in the above lists, it should
+If a global variable is not mentioned in the above lists, it should
 	not be changed (changing it might do nothing or might crash the 
 	program).
 
