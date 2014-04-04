@@ -3,7 +3,7 @@ import java.util.*;
 import java.io.*;
 public class AI {
 	//Version (duh)
-	public static final String VERSION = "1.6.3";
+	public static final String VERSION = "1.6.4";
 	//Meta-Settings
 	public String name = "WerryJu"; // this field is currently obsolete
 	public static boolean recording = true;
@@ -460,9 +460,9 @@ public class AI {
 				max2 = Math.min(max2, max1-max2);
 				max1 -= max2;
 				if (board[i][j] > 0 && board[i][j] < max1) 
-					val -= (pow(max1 - board[i][j], 1) + 2 * pow(max1 / board[i][j] - 1, 1)) * 1024 * pow(sum_board, 2) / 64;
+					val -= (pow(max1 - board[i][j], 1) + 2 * pow(max1 / board[i][j] - 1, 1)) * 1024 * pow(sum_board, 3) / 8192;
 				if (board[i][j] > 0 && board[i][j] < max2)
-					val -= (pow(max2 - board[i][j], 1) + 2 * pow(max2 / board[i][j] - 1, 1)) * 1024 * pow(sum_board, 2) / 16;
+					val -= (pow(max2 - board[i][j], 1) + 2 * pow(max2 / board[i][j] - 1, 1)) * 1024 * pow(sum_board, 3) / 2048;
 			}
 		}
 		

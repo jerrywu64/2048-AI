@@ -17,8 +17,8 @@ public class GameGUI extends javax.swing.JFrame {
     private static String ai_name = "defaultBot";
     private static boolean ai = true;
     private static boolean ai_autoRestart = true;
-    private static int ai_trials = 100;
-    public static int win_target = 4096;
+    private static int ai_trials = 50;
+    public static int win_target = 16384;
     public static int sleep_time = 5;
     public static boolean funky_fonts = false;
 	
