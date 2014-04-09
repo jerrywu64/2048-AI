@@ -3,7 +3,7 @@ import java.util.*;
 import java.io.*;
 public class AI {
 	//Version (duh)
-	public static final String VERSION = "1.6.4";
+	public static final String VERSION = "1.7.9";
 	//Meta-Settings
 	public String name = "WerryJu"; // this field is currently obsolete
 	public static boolean recording = true;
@@ -11,8 +11,8 @@ public class AI {
 	
 	//Performance/Algorithm Settings
 	private boolean dumbai = false;
-	private int iter_max = 15000;
-	private int worst_weight = 2; // worst is weighted weight:1 vs avg
+	private int iter_max = 1500;
+	private double worst_weight = 0.03; // worst is weighted weight:1 vs avg
 	private int asym_greater = 2; // dist from "lighter" edge weight (see grade())
 	private int asym_lesser = 7; // dist from "heavier" edge weight (see grade())
 	
@@ -171,11 +171,11 @@ public class AI {
 				for (int j = 0; j < 4; j++) {
 					if (sim[i][j] > 0) continue;
 					sim[i][j] = 2;
-					long temp = predictor(sim, iter_max/(int) Math.pow((countBlank(sim) + 1), 1.6), 1);
+					long temp = predictor(sim, iter_max/(int) Math.pow((countBlank(sim) + 1), 1.2), 1);
 					if (temp < worst) worst = temp;
 					avg += 9 * temp;
 					sim[i][j] = 4;
-					temp = predictor(sim, iter_max/(int) Math.pow((countBlank(sim) + 1), 1.6), 1);
+					temp = predictor(sim, iter_max/(int) Math.pow((countBlank(sim) + 1), 1.2), 1);
 					if (temp < worst) worst = temp;
 					avg += temp;
 					sim[i][j] = 0;
@@ -189,7 +189,7 @@ public class AI {
 				numt++;
 			}
 			avg /= numt;
-			worst = (worst_weight * worst + avg) / (worst_weight + 1);
+			worst = (long) ((worst_weight * worst + avg) / (worst_weight + 1));
 			if (countBlank(sim) >= 8 && max(board) < 64) worst = avg;
 			if (debug || debug2) System.out.println("Move " + m + " final eval: " + worst);
 			if (out != null) out.println("Move " + m + " final eval: " + worst);
@@ -254,7 +254,7 @@ public class AI {
 		}
 		if (!movable(board, 0) && !movable(board, 1) && !movable(board, 2) && !movable(board, 3)) {
 			//if (max(board) == GameGUI.win_target) return grade(board);
-			return (long) -1999999999 * 3 * sum_board;
+			return (long) -1999999999 * 3 * (sum_board - max(board) / 500);
 		}
 		div *= 2;
 		if (div > iters) {
@@ -299,7 +299,7 @@ public class AI {
 			//avg -= worst;
 			avg /= numt;
 			if (debug) System.out.println("Result: " + worst);
-			if ((avg + worst_weight * worst) / (worst_weight + 1) > best) best = (worst_weight * worst + avg) / (worst_weight + 1);
+			if ((avg + worst_weight * worst) / (worst_weight + 1) > best) best = (long) ((worst_weight * worst + avg) / (worst_weight + 1));
 			//if (worst > best) best = worst;
 			if (div >= 64 && max(board) < 64 && avg > best) best = avg; 
 		}
@@ -440,13 +440,13 @@ public class AI {
 		//System.out.println(9 + Math.random());
 		for (int i = 0; i < 4; i++) {
 			for (int j = 0; j < 4; j++) {
-				val += (long) (pow(2, 17 - p * i - q * j) - 96/(long) Math.sqrt(max_board)) * pow(board[i][j], 2 - (p * i + q * j) / (p + q)); 
+				val += (long) (24 - p * i - q * j) * pow(board[i][j], 2) * 2500; 
 			}
 		}
 		if (countBlank(board) > 0) {
-			val -= 5000/pow(countBlank(board), 2) * max_board;
+			val -= 2500/pow(countBlank(board), 2) * sum_board;
 		} else {
-			val -= 24000 * max_board;
+			val -= 12000 * sum_board;
 		}
 		//bad joints
 		//System.out.println(8 + Math.random());
@@ -459,17 +459,17 @@ public class AI {
 				max1 += max2;
 				max2 = Math.min(max2, max1-max2);
 				max1 -= max2;
+				if (max1 > max2_board) continue;
 				if (board[i][j] > 0 && board[i][j] < max1) 
-					val -= (pow(max1 - board[i][j], 1) + 2 * pow(max1 / board[i][j] - 1, 1)) * 1024 * pow(sum_board, 3) / 8192;
+					val -= (pow(max1 - board[i][j], 1) + 2 * pow(max1 / board[i][j] - 1, 1)) * 256 * pow(sum_board - max_board, 2);
 				if (board[i][j] > 0 && board[i][j] < max2)
-					val -= (pow(max2 - board[i][j], 1) + 2 * pow(max2 / board[i][j] - 1, 1)) * 1024 * pow(sum_board, 3) / 2048;
+					val -= (pow(max2 - board[i][j], 1) + 2 * pow(max2 / board[i][j] - 1, 1)) * 256 * pow(sum_board - max_board, 2) * 4 ;
 			}
 		}
-		
 		//System.out.println(10 + Math.random());
-		if (max_board > board[0][0]) val -= 12000 * (long) (sum_board / 2 - board[0][0]) * pow((sum_board) / 2, 2) * (delta_sum_board_7over8 > sum_board / 12?10:1);
+		if (max_board > board[0][0]) val -= 12000 * (long) (sum_board / 2 - (board[0][0]==0?8:board[0][0])) * pow((sum_board) / 2, 2) * (delta_sum_board_7over8 > sum_board / 8?10:1);
 		if ((board[0][1] > 0 || board[1][0] > 0) && max_board > 16 && max2_board > Math.max(board[0][1], board[1][0]))
-			val -= 3600 * (long) Math.max(0, Math.max(max2_board, sum_board / 3) - Math.max(board[0][1], board[1][0])) * pow(sum_board / 3 , 2) * (delta_sum_board_7over8 > sum_board / 6?10:1);
+			val -= 10000 * (long) Math.max(0, sum_board - max_board - Math.max(board[0][1], board[1][0])) * pow(sum_board - max_board , 2) * (delta_sum_board_7over8 > sum_board / 8?10:1);
 		if (debug) System.out.println("Result: " + val);
 		if (debug) sc.nextLine();
 		//if (4 * board[0][1] + board[0][2] < 4 * board[1][0] + board[2][0]) transpose(board);
